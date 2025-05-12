@@ -1,0 +1,46 @@
+# traffic_accident_predictor.py
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# 1. Load and Preprocess Data
+df = pd.read_csv('traffic_accidents.csv')
+
+# Display basic info
+print("Initial Data Overview:")
+print(df.head())
+print(df.info())
+
+# Drop missing or irrelevant columns
+df.dropna(inplace=True)
+
+# Encode categorical data if necessary
+df = pd.get_dummies(df, drop_first=True)
+
+# 2. Define Features and Target
+X = df.drop('Accident_Severity', axis=1)
+y = df['Accident_Severity']  # e.g., 0: Low, 1: High severity
+
+# 3. Split Data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# 4. Train Model
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# 5. Predict and Evaluate
+y_pred = model.predict(X_test)
+print("Model Performance:\n")
+print(confusion_matrix(y_test, y_pred))
+print(classification_report(y_test, y_pred))
+
+# 6. Feature Importance Plot
+feat_importances = pd.Series(model.feature_importances_, index=X.columns)
+feat_importances.nlargest(10).plot(kind='barh')
+plt.title('Top 10 Factors Influencing Accident Severity')
+plt.xlabel('Importance Score')
+plt.show()
